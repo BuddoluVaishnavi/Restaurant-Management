@@ -1,0 +1,235 @@
+import java.util.*;
+
+public class RQMS {
+
+    class MenuItem {
+        String name;
+        double price;
+
+        MenuItem(String name, double price) {
+            this.name = name;
+            this.price = price;
+        }
+
+        @Override
+        public String toString() {
+            return name + ": $" + price;
+        }
+    }
+
+    class OrderItem {
+        MenuItem item;
+        int quantity;
+
+        OrderItem(MenuItem item, int quantity) {
+            this.item = item;
+            this.quantity = quantity;
+        }
+
+        double getTotalPrice() {
+            return item.price * quantity;
+        }
+
+        @Override
+        public String toString() {
+            return item.name + " x" + quantity + ": $" + getTotalPrice();
+        }
+    }
+
+    class CustomerOrder {
+        static int orderCounter = 1;
+        int orderId;
+        List<OrderItem> items;
+        String status;
+
+        CustomerOrder(List<OrderItem> items) {
+            this.orderId = orderCounter++;
+            this.items = items;
+            this.status = "Placed";
+        }
+
+        void prepare() {
+            this.status = "Preparing";
+        }
+
+        void serve() {
+            this.status = "Served";
+        }
+
+        double getTotalPrice() {
+            double total = 0;
+            for (OrderItem item : items) {
+                total += item.getTotalPrice();
+            }
+            return total;
+        }
+
+        @Override
+        public String toString() {
+            return "Order ID: " + orderId + "\nItems:\n" + items + "\nStatus: " + status + "\nTotal Price: $" + getTotalPrice();
+        }
+    }
+
+    class Restaurant {
+        Queue<CustomerOrder> orderQueue = new LinkedList<>();
+        Queue<CustomerOrder> kitchenQueue = new LinkedList<>();
+        Queue<CustomerOrder> serveQueue = new LinkedList<>();
+        List<MenuItem> menu = new ArrayList<>();
+
+        void addMenuItem(String name, double price) {
+            menu.add(new MenuItem(name, price));
+        }
+
+        void placeOrder(List<OrderItem> items) {
+            CustomerOrder order = new CustomerOrder(items);
+            orderQueue.add(order);
+            System.out.println("Order placed: " + order);
+        }
+
+        void prepareOrder() {
+            if (!orderQueue.isEmpty()) {
+                CustomerOrder order = orderQueue.poll();
+                order.prepare();
+                kitchenQueue.add(order);
+                System.out.println("Order is being prepared: " + order);
+            } else {
+                System.out.println("No orders to prepare.");
+            }
+        }
+
+        void serveOrder() {
+            if (!kitchenQueue.isEmpty()) {
+                CustomerOrder order = kitchenQueue.poll();
+                order.serve();
+                serveQueue.add(order);
+                System.out.println("Order served: " + order);
+            } else {
+                System.out.println("No orders to serve.");
+            }
+        }
+
+        void printMenu() {
+            System.out.println("Menu:");
+            for (MenuItem item : menu) {
+                System.out.println(item);
+            }
+        }
+
+        void printOrderStatus() {
+            System.out.println("Order Status:");
+            for (CustomerOrder order : serveQueue) {
+                System.out.println(order);
+            }
+        }
+
+        void printKitchenQueue() {
+            System.out.println("Kitchen Queue:");
+            for (CustomerOrder order : kitchenQueue) {
+                System.out.println(order);
+            }
+        }
+
+        void printCustomerReceipts() {
+            System.out.println("Customer Receipts:");
+            for (CustomerOrder order : serveQueue) {
+                System.out.println(order);
+            }
+        }
+    }
+
+    public class RestaurantOrderManagement {
+        public void start() {
+            Restaurant restaurant = new Restaurant();
+            Scanner scanner = new Scanner(System.in);
+
+            // Adding menu items
+            restaurant.addMenuItem("Burger", 5.99);
+            restaurant.addMenuItem("Pizza", 8.99);
+            restaurant.addMenuItem("Salad", 4.99);
+
+            while (true) {
+                System.out.println("Choose an operation: 1) Place Order 2) Prepare Order 3) Serve Order 4) Print Menu 5) Print Order Status 6) Print Kitchen Queue 7) Print Customer Receipts 8) Exit");
+                int choice = scanner.nextInt();
+                scanner.nextLine(); // consume the newline
+
+                switch (choice) {
+                    case 1:
+                        // Place order
+                        List<OrderItem> items = new ArrayList<>();
+                        while (true) {
+                            restaurant.printMenu();
+                            System.out.println("Enter item name to order (or 'done' to finish):");
+                            String itemName = scanner.nextLine();
+                            if (itemName.equalsIgnoreCase("done")) {
+                                break;
+                            }
+                            System.out.println("Enter quantity:");
+                            int quantity = scanner.nextInt();
+                            scanner.nextLine(); // consume the newline
+
+                            MenuItem menuItem = null;
+                            for (MenuItem item : restaurant.menu) {
+                                if (item.name.equalsIgnoreCase(itemName)) {
+                                    menuItem = item;
+                                    break;
+                                }
+                            }
+
+                            if (menuItem != null) {
+                                items.add(new OrderItem(menuItem, quantity));
+                            } else {
+                                System.out.println("Item not found in the menu.");
+                            }
+                        }
+                        restaurant.placeOrder(items);
+                        break;
+
+                    case 2:
+                        // Prepare order
+                        restaurant.prepareOrder();
+                        break;
+
+                    case 3:
+                        // Serve order
+                        restaurant.serveOrder();
+                        break;
+
+                    case 4:
+                        // Print menu
+                        restaurant.printMenu();
+                        break;
+
+                    case 5:
+                        // Print order status
+                        restaurant.printOrderStatus();
+                        break;
+
+                    case 6:
+                        // Print kitchen queue
+                        restaurant.printKitchenQueue();
+                        break;
+
+                    case 7:
+                        // Print customer receipts
+                        restaurant.printCustomerReceipts();
+                        break;
+
+                    case 8:
+                        // Exit
+                        System.out.println("Exiting...");
+                        scanner.close();
+                        return;
+
+                    default:
+                        System.out.println("Invalid choice. Please try again.");
+                }
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        RQMS rqms = new RQMS();
+        RestaurantOrderManagement rom = rqms.new RestaurantOrderManagement();
+        rom.start();
+    }
+}
